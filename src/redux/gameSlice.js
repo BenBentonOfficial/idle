@@ -5,6 +5,7 @@ export const gameSlice = createSlice({
   initialState: {
     value: 20,
     valueMulti: 1,
+    storesToBuyIndex: 0,
   },
   reducers: {
     addToValue: (state, action) => {
@@ -16,12 +17,19 @@ export const gameSlice = createSlice({
     },
     increaseMulti: (state) => {
       state.valueMulti++;
+    },
+    changeIndex: (state) => {
+      if(state.storesToBuyIndex >= 3) {
+        state.storesToBuyIndex = 0;
+      } else {
+        state.storesToBuyIndex++;
+      }
     }
   },
 });
 
 // ACTIONS export
-export const { addToValue, subFromValue, increaseMulti } = gameSlice.actions;
+export const { addToValue, subFromValue, increaseMulti, changeIndex } = gameSlice.actions;
 
 // Define a thunk that dispatches those action creators
 /**

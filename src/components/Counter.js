@@ -29,14 +29,18 @@ import {
 import * as Font from "expo-font";
 import AppLoading from "expo-app-loading";
 
-export default function Counter({ name, baseValue, initCost, initSpeed }) {
+export default function Counter({ name, storeNum, baseValue, initCost, initSpeed, setCount }) {
   const [StoreCount, setStoreCount] = useState(0);
   const [StoreMulti, setStoreMulti] = useState(1);
   const [StorePrice, setStorePrice] = useState(initCost);
   const [StoreSpeed, setStoreSpeed] = useState(initSpeed);
   const [IsActive, setIsActive] = useState(false);
+  const [StoresToBuy, setStoresToBuy] = useState(1)
+  
+  const storeCountAchieve = [25, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 600, 700, 800, 900, 1000];
 
   const totalValue = useSelector((state) => state.game.value);
+  const index = useSelector((state) => state.game.storesToBuyIndex);
 
   const dispatch = useDispatch();
 
@@ -55,11 +59,17 @@ export default function Counter({ name, baseValue, initCost, initSpeed }) {
     Roboto_900Black_Italic,
   });
 
+  const calcBuy = () => {
+    
+  }
+
   let num = 0;
   useEffect(() => {
     const interval = setInterval(() => {
+      console.log(StoresToBuy);
       // console.log(`${name} thinks its adding: ${baseValue * StoreCount * StoreMulti}`)
       IsActive ? dispatch(addToValue(baseValue * StoreCount * StoreMulti)) : null;
+      setStorePrice(Math.round(initCost + (StoresToBuy * ((StorePrice + 1) * storeNum))));
       num++;
     }, StoreSpeed);
     return () => {
@@ -86,11 +96,12 @@ export default function Counter({ name, baseValue, initCost, initSpeed }) {
               {baseValue * StoreCount * StoreMulti} : Value
             </Paragraph>
           
-          <Progress.Bar
+          {IsActive ? 
+            <Progress.Bar
             indeterminate={true}
             indeterminateAnimationDuration={StoreSpeed}
             color={"#3498db"}
-          />
+          /> : null }
           </Card.Content>
           <Card.Actions>
             <Button
@@ -99,11 +110,17 @@ export default function Counter({ name, baseValue, initCost, initSpeed }) {
               onPress={async () => {
                 try {
                   if (totalValue >= StorePrice) {
-                    IsActive ? null : setIsActive(true);
+                    if(!IsActive) {
+                      setIsActive(true);
+                      setCount(storeNum);
+                    }
                     setStoreCount(StoreCount + 1);
                     dispatch(subFromValue(StorePrice));
-                    setStorePrice(Math.round(StorePrice + StorePrice * 0.1));
-                    console.log(StorePrice);
+                    index === 0 ? setStoresToBuy(1) : index === 1 ? setStoresToBuy(10) : index === 2 ? setStoresToBuy(25) : index === 3 ? setStoresToBuy(100) : setStoresToBuy(1);
+                    setStorePrice(Math.round(initCost + (StoresToBuy * ((StorePrice + 1) * storeNum))));
+                    storeCountAchieve.forEach((e, index) => {
+                      e - 1 <= StoreCount ? setStoreMulti((index + 1) * 2) : null; 
+                    })
                     await AsyncStorage.setItem("StoreCount", `${StoreCount}`);
                   }
                 } catch (err) {
