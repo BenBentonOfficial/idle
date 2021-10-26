@@ -59,23 +59,42 @@ export default function Counter({ name, storeNum, baseValue, initCost, initSpeed
     Roboto_900Black_Italic,
   });
 
-  const calcBuy = () => {
+  const updateValues = () => {
+    switch (index) {
+      case 0: setStoresToBuy(1); break;
+      case 1: setStoresToBuy(10); break;
+      case 2: setStoresToBuy(50); break;
+      case 3: setStoresToBuy(100); break;
+      default: setStoresToBuy(1); 
+    }
     
+    setStorePrice(Math.round(StoresToBuy * ((initCost))));
   }
 
   let num = 0;
   useEffect(() => {
     const interval = setInterval(() => {
-      console.log(StoresToBuy);
-      // console.log(`${name} thinks its adding: ${baseValue * StoreCount * StoreMulti}`)
+      //console.log(`${name}: Index is ${index} so it should try to purchase ${StoresToBuy} for ${initCost} each for the total price of ${StorePrice}`);
+      //console.log(`${name} thinks its adding: ${baseValue * StoreCount * StoreMulti}`)
       IsActive ? dispatch(addToValue(baseValue * StoreCount * StoreMulti)) : null;
-      setStorePrice(Math.round(initCost + (StoresToBuy * ((StorePrice + 1) * storeNum))));
+      storeCountAchieve.forEach((e, index) => {
+        e - 1 <= StoreCount ? setStoreMulti((index + 1) * 2) : null; 
+      })
       num++;
     }, StoreSpeed);
     return () => {
       clearInterval(interval);
     };
-  }, [StoreCount, StoreMulti, num]);
+  }, [num, StoreMulti]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      updateValues();
+    }, 100);
+    return () => {
+      clearInterval(interval);
+    }
+  }, [index, totalValue, StorePrice])
 
   if (!fontsLoaded) {
     return <AppLoading />;
@@ -83,7 +102,7 @@ export default function Counter({ name, storeNum, baseValue, initCost, initSpeed
     return (
       <View style={styles.container}>
         <Card style={styles.cardStyle}>
-          <Title style={styles.titleText}>{name}</Title>
+          <Title style={styles.titleText}>{name}        {StoresToBuy}</Title>
           <Paragraph style={styles.priceText}>Cost: {StorePrice} </Paragraph>
           <Card.Content style={styles.infoTextContainer}>
             <Paragraph style={styles.infoText}>
@@ -110,17 +129,19 @@ export default function Counter({ name, storeNum, baseValue, initCost, initSpeed
               onPress={async () => {
                 try {
                   if (totalValue >= StorePrice) {
+
+                    //if the store is inactive, make it active
                     if(!IsActive) {
                       setIsActive(true);
                       setCount(storeNum);
                     }
-                    setStoreCount(StoreCount + 1);
+
+                    //add number of stores purcahsed
+                    setStoreCount(StoreCount + StoresToBuy);
+
+                    //subtract purchase price from total
                     dispatch(subFromValue(StorePrice));
-                    index === 0 ? setStoresToBuy(1) : index === 1 ? setStoresToBuy(10) : index === 2 ? setStoresToBuy(25) : index === 3 ? setStoresToBuy(100) : setStoresToBuy(1);
-                    setStorePrice(Math.round(initCost + (StoresToBuy * ((StorePrice + 1) * storeNum))));
-                    storeCountAchieve.forEach((e, index) => {
-                      e - 1 <= StoreCount ? setStoreMulti((index + 1) * 2) : null; 
-                    })
+
                     await AsyncStorage.setItem("StoreCount", `${StoreCount}`);
                   }
                 } catch (err) {
