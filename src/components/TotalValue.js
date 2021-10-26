@@ -44,8 +44,9 @@ export default TotalValue = () => {
                 }
               }}
             >
-              x{index === 0 ? "1" : index === 1 ? "10" : index === 2 ? "50" : index === 3 ? 100 : null}
+              <Text style={{fontFamily: "Roboto_400Regular_Italic"}}>x{index === 0 ? "1" : index === 1 ? "10" : index === 2 ? "50" : index === 3 ? 100 : null}</Text>
             </Button>
+            
     </View>
   );
   }
@@ -53,23 +54,23 @@ export default TotalValue = () => {
 
 const styles = StyleSheet.create({
   container: {
+    flexDirection: "row",
     padding: 15,
-    justifyContent: "center",
-    alignItems: "center"
+    justifyContent: "space-between",
   },
   valueText: {
-    fontSize: 25,
+    fontSize: 30,
     fontFamily: "Roboto_700Bold",
-    height: 25,
+    height: 30,
     color: "#3498db",
+    alignSelf: "center"
   },
   button: {
-    position: "absolute",
-    left: 300,
-    height: 40,
-    width: 60,
+    alignSelf: "flex-end",
     alignItems: "center",
-    fontFamily: "Roboto_400Regular",
+    fontFamily: "Roboto_400Regular_Italic",
     fontSize: 12,
+    width: 60,
+    
   }
 })

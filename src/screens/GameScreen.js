@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import store from "../redux/store";
 import { Provider as ReduxProvider } from "react-redux";
 import { DefaultTheme, Provider as PaperProvider } from "react-native-paper";
+import { withNavigation } from "react-navigation";
+import GestureRecognizer, {swipeDirections} from 'react-native-swipe-gestures';
 import {
   SafeAreaView,
   ScrollView,
@@ -25,7 +27,7 @@ const theme = {
 };
 
 
-const GameScreen = () => {
+const GameScreen = ({ navigation }) => {
 
   const [StoreCount, setStoreCount] = useState(0);
   
@@ -38,7 +40,7 @@ const GameScreen = () => {
             hidden={false}
             style={styles.background}
             />
-          <TotalValue />
+            <TotalValue />
           <ScrollView contentInsetAdjustmentBehavior="automatic">
             <View>
               <Counter name="Top" storeNum={1} baseValue={1} initCost={10} initSpeed={2000} setCount={setStoreCount}/>

@@ -1,16 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   Button,
   Card,
   Title,
   Paragraph,
-  useTheme,
-  ProgressBar,
 } from "react-native-paper";
 import { useSelector, useDispatch } from "react-redux";
-import { addToValue, subFromValue, increaseMulti } from "../redux/gameSlice";
+import { addToValue, subFromValue } from "../redux/gameSlice";
 import * as Progress from "react-native-progress";
 import {
   Roboto_100Thin,
@@ -36,6 +34,7 @@ export default function Counter({ name, storeNum, baseValue, initCost, initSpeed
   const [StoreSpeed, setStoreSpeed] = useState(initSpeed);
   const [IsActive, setIsActive] = useState(false);
   const [StoresToBuy, setStoresToBuy] = useState(1)
+  const [CanAfford, setCanAfford] = useState(true)
   
   const storeCountAchieve = [25, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 600, 700, 800, 900, 1000];
 
@@ -60,41 +59,45 @@ export default function Counter({ name, storeNum, baseValue, initCost, initSpeed
   });
 
   const updateValues = () => {
+    
     switch (index) {
       case 0: setStoresToBuy(1); break;
       case 1: setStoresToBuy(10); break;
       case 2: setStoresToBuy(50); break;
       case 3: setStoresToBuy(100); break;
-      default: setStoresToBuy(1); 
+      default: setStoresToBuy(1);
     }
-    
-    setStorePrice(Math.round(StoresToBuy * ((initCost))));
+    // TODO: New store pricing formula
+    setStorePrice(Math.round((StoresToBuy * initCost * (Math.pow(StoresToBuy * initCost + StoreCount, (StoreCount + 1) * 0.01)))));
+
+    totalValue >= StorePrice ? setCanAfford(true) : setCanAfford(false);
   }
 
-  let num = 0;
+  const findAchieve = () => {
+    storeCountAchieve.forEach((e, index) => {
+      e - StoresToBuy <= StoreCount ? setStoreMulti((index + 1) * 2) : null; 
+    });
+  }
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      updateValues();
+    }, 200);
+    return () => {
+      clearInterval(interval);
+    }
+  }, [index, StorePrice, StoresToBuy, StoreCount, CanAfford, totalValue])
+
   useEffect(() => {
     const interval = setInterval(() => {
       //console.log(`${name}: Index is ${index} so it should try to purchase ${StoresToBuy} for ${initCost} each for the total price of ${StorePrice}`);
       //console.log(`${name} thinks its adding: ${baseValue * StoreCount * StoreMulti}`)
       IsActive ? dispatch(addToValue(baseValue * StoreCount * StoreMulti)) : null;
-      storeCountAchieve.forEach((e, index) => {
-        e - 1 <= StoreCount ? setStoreMulti((index + 1) * 2) : null; 
-      })
-      num++;
     }, StoreSpeed);
     return () => {
       clearInterval(interval);
     };
-  }, [num, StoreMulti]);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      updateValues();
-    }, 100);
-    return () => {
-      clearInterval(interval);
-    }
-  }, [index, totalValue, StorePrice])
+  }, [StoreMulti, totalValue]);
 
   if (!fontsLoaded) {
     return <AppLoading />;
@@ -102,7 +105,7 @@ export default function Counter({ name, storeNum, baseValue, initCost, initSpeed
     return (
       <View style={styles.container}>
         <Card style={styles.cardStyle}>
-          <Title style={styles.titleText}>{name}        {StoresToBuy}</Title>
+          <Title style={styles.titleText}>{name}      </Title>
           <Paragraph style={styles.priceText}>Cost: {StorePrice} </Paragraph>
           <Card.Content style={styles.infoTextContainer}>
             <Paragraph style={styles.infoText}>
@@ -125,6 +128,7 @@ export default function Counter({ name, storeNum, baseValue, initCost, initSpeed
           <Card.Actions>
             <Button
               style={styles.buttons}
+              disabled={!CanAfford}
               mode="contained"
               onPress={async () => {
                 try {
@@ -142,6 +146,8 @@ export default function Counter({ name, storeNum, baseValue, initCost, initSpeed
                     //subtract purchase price from total
                     dispatch(subFromValue(StorePrice));
 
+                    findAchieve();
+
                     await AsyncStorage.setItem("StoreCount", `${StoreCount}`);
                   }
                 } catch (err) {
@@ -151,7 +157,7 @@ export default function Counter({ name, storeNum, baseValue, initCost, initSpeed
             >
               Buy Store
             </Button>
-            <Button
+            {/* <Button
               style={styles.buttons}
               compact
               mode="contained"
@@ -163,9 +169,9 @@ export default function Counter({ name, storeNum, baseValue, initCost, initSpeed
                   console.log(err);
                 }
               }}
-            >
+            > 
               Add Multiplier
-            </Button>
+            </Button>*/}
           </Card.Actions>
         </Card>
       </View>
